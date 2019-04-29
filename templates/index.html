@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Vue-upload-component Test</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/vue-upload-component"></script>
+</head>
+<body>
+<div id="app">
+
+    <div class="example-multiple">
+        <h1 id="example-title" class="example-title">Multiple instances</h1>
+        <div class="upload">
+            <ul>
+                <li v-for="(file, index) in files1" :key="file.id">
+                    <span>{{ file.name }}</span> -
+                    <span v-if="file.error">{{ file.error }}</span>
+                    <span v-else-if="file.success">success</span>
+                    <span v-else-if="file.active">active</span>
+                    <span v-else-if="file.active">active</span>
+                    <span v-else></span>
+                </li>
+            </ul>
+            <div class="example-btn">
+                <file-upload
+                        class="btn btn-primary"
+                        input-id="file1"
+                        post-action="http://localhost:8000/upload"
+                        v-model="files1"
+                        ref="upload1"
+                        @input-file="inputFile"
+                        @input-filter="inputFilter"
+                >
+                    <i class="fa fa-plus"></i>
+                    Select files
+                </file-upload>
+                <label for="file1" class="btn btn-primary">Label Select files</label>
+                <button type="button" id="button1" class="btn btn-success"
+                        v-if="!$refs.upload1 || !$refs.upload1.active" @click.prevent="$refs.upload1.active = true">
+                    <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                    Start Upload
+                    <img :src="img1" alt="">
+                </button>
+                <button type="button" class="btn btn-danger" v-else @click.prevent="$refs.upload1.active = false">
+                    <i class="fa fa-stop" aria-hidden="true"></i>
+                    Stop Upload
+                </button>
+            </div>
+        </div>
+
+
+        <div class="upload">
+            <ul>
+                <li v-for="(file, index) in files2" :key="file.id">
+                    <span>{{ file.name }}</span> -
+                    <span v-if="file.error">{{ file.error }}</span>
+                    <span v-else-if="file.success">success</span>
+                    <span v-else-if="file.active">active</span>
+                    <span v-else-if="file.active">active</span>
+                    <span v-else></span>
+                </li>
+            </ul>
+            <div class="example-btn">
+                <file-upload
+                        class="btn btn-primary"
+
+                        input-id="file2"
+                        post-action="upload"
+                        v-model="files2"
+                        ref="upload2"
+                        @input-file="inputFile"
+                        @input-filter="inputFilter">
+                    <i class="fa fa-plus"></i>
+                    Select files
+                    <img :src="img2" alt="">
+                </file-upload>
+                <label for="file2" class="btn btn-primary">Label Select files</label>
+                <button type="button" class="btn btn-success" v-if="!$refs.upload2 || !$refs.upload2.active"
+                        @click.prevent="$refs.upload2.active = true">
+                    <i class="fa fa-arrow-up" aria-hidden="true"></i>
+                    Start Upload
+                </button>
+                <button type="button" class="btn btn-danger" v-else @click.prevent="$refs.upload2.active = false">
+                    <i class="fa fa-stop" aria-hidden="true"></i>
+                    Stop Upload
+                </button>
+            </div>
+        </div>
+    </div>
+
+</div>
+<script>
+    new Vue({
+        el: '#app',
+        data: function () {
+            return {
+                files1: [],
+                files2: [],
+                img1: null,
+                img2: null,
+
+                isWatch: false,
+            }
+        },
+        mounted: function () {
+            console.log('mounted...');
+            //console.log(this.img3)
+
+            this.isWatch = true;
+            this.isWatch = false
+
+        },
+        computed: {
+            img3: function () {
+                console.log('compute...')
+                return 'img_3.0'
+            }
+        },
+        components: {
+            FileUpload: VueUploadComponent
+        },
+        watch: {
+            files1: function () {
+            },
+            files2: function () {
+            },
+
+            isWatch: {
+                immediate: false,
+                handler: function (value) {
+                    console.log('is watch')
+                    console.log('watch value:', value);
+                }
+            }
+        },
+        methods: {
+
+            /**
+             * Has changed
+             * @param  Object|undefined   newFile   只读
+             * @param  Object|undefined   oldFile   只读
+             * @return undefined
+             */
+            inputFile: function (newFile, oldFile) {
+                if (newFile && oldFile && !newFile.active && oldFile.active) {
+                    // 获得相应数据
+                    console.log('response', newFile.response)
+                    if (newFile.xhr) {
+                        //  获得响应状态码
+
+                        console.log('status', newFile.xhr.status)
+                    }
+                }
+            },
+            /**
+             * Pretreatment
+             * @param  Object|undefined   newFile   读写
+             * @param  Object|undefined   oldFile   只读
+             * @param  Function           prevent   阻止回调
+             * @return undefined
+             */
+            inputFilter: function (newFile, oldFile, prevent) {
+
+                if (newFile && !oldFile) {
+                    // 过滤不是图片后缀的文件
+                    if (!/\.(jpeg|jpe|jpg|gif|png|webp)$/i.test(newFile.name)) {
+                        return prevent()
+                    }
+                }
+
+                // 创建 blob 字段 用于图片预览
+                newFile.blob = ''
+                let URL = window.URL || window.webkitURL
+                if (URL && URL.createObjectURL) {
+                    newFile.blob = URL.createObjectURL(newFile.file)
+                }
+
+                // 自动上传
+                if (Boolean(newFile) !== Boolean(oldFile) || oldFile.error !== newFile.error) {
+                    if (!this.$refs.upload1.active) {
+                        console.log('auto start...')
+                        this.$nextTick(function () {
+                            this.$refs.upload1.active = true;
+                            this.$refs.upload2.active = true;
+                        });
+                        console.log(this.$refs.upload1)
+                    }
+                }
+
+            }
+        }
+    });
+</script>
+</body>
+</html>
