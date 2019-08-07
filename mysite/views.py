@@ -6,7 +6,7 @@ from django.http import HttpResponse
 
 def hello(request):
     print(request.GET.get('name'))
-    context = {'hello': '!Hello World!'}
+    context = {'hello': 'Hello World!'}
     return render(request, 'hello.html', context)
 
 
